@@ -1,0 +1,30 @@
+---
+const phases = [
+  { n: 1, title: 'Site visits & data collection', state: 'completed' },
+  { n: 2, title: 'Preliminary design & sizing', state: 'completed' },
+  { n: 3, title: 'Prototype development & testing', state: 'ongoing' },
+  { n: 4, title: 'Performance evaluation & framework', state: 'ongoing' },
+];
+---
+
+<ol class="grid grid-cols-1 md:grid-cols-4 gap-px bg-[color:var(--color-rule)] rounded-lg overflow-hidden border border-[color:var(--color-rule)]">
+  {phases.map(p => (
+    <li class="p-6 bg-white relative">
+      <div class="flex items-center gap-3">
+        <span class="font-mono text-xs text-[color:var(--color-ink-muted)]">PHASE {p.n}</span>
+        {p.state === 'completed' ? (
+          <span class="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-[color:var(--color-accent)]/10 text-[color:var(--color-accent)]">
+            Complete
+          </span>
+        ) : (
+          <span class="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-[color:var(--color-warning)]/10 text-[color:var(--color-warning)]">
+            Ongoing
+          </span>
+        )}
+      </div>
+      <p class="mt-3 font-serif text-lg text-[color:var(--color-ink)] leading-snug">
+        {p.title}
+      </p>
+    </li>
+  ))}
+</ol>

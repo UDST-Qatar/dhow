@@ -1,0 +1,54 @@
+---
+import Stat from './Stat.astro';
+---
+
+<section id="top" class="relative overflow-hidden">
+  <div
+    class="absolute inset-0 -z-10 opacity-50"
+    style="background:
+      radial-gradient(ellipse at 18% 8%, rgba(0, 85, 184, 0.18), transparent 55%),
+      radial-gradient(ellipse at 82% 12%, rgba(214, 137, 34, 0.18), transparent 60%);"
+  ></div>
+
+  <div class="mx-auto max-w-[var(--container-wide)] px-6 lg:px-10 pt-20 pb-24 md:pt-28 md:pb-32">
+    <div class="flex items-center gap-3 mb-7">
+      <svg width="20" height="28" viewBox="0 0 33 46" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M6.05 8.75v13.427l8.749 7.37V8.75l-2.87 2.447v12.578l-2.94-2.393V11.197zM14.799 46V32.58L6.05 25.21V46l2.87-2.44V30.981l2.939 2.393v10.184zm2.773-37.25v20.797l8.755-7.37V8.75h-8.755zm5.816 12.632-2.94 2.413V11.197h2.94v10.185zM3.043 4.242h26.915v2.502H3.043zm26.914-1.74H3.043L0 0h33zM23.45 43.56 26.327 46v-3.168l-2.877-2.448v3.175zm-5.878-10.98V46l2.939-2.44v-10.2l2.939-2.393v8.396l2.877 2.448V25.21l-8.755 7.37z" fill="#0055B8"/>
+      </svg>
+      <p class="eyebrow !mb-0">
+        University of Doha for Science and Technology
+      </p>
+    </div>
+
+    <p class="text-xs uppercase tracking-[0.16em] text-[color:var(--color-ink-muted)] font-medium">
+      Report MOECC-UDST-5 &middot; January 2026 &middot; Phase 3 / 4 — Prototype &amp; Validation
+    </p>
+
+    <h1 class="mt-5 font-serif text-4xl md:text-6xl lg:text-7xl leading-[1.05] tracking-tight text-[color:var(--color-ink)]">
+      Sustainable Dhows<br/>
+      <span class="text-[color:var(--color-udst-blue)]">Retrofitting</span> in Qatar
+    </h1>
+
+    <p
+      lang="ar"
+      class="mt-6 text-2xl md:text-3xl text-[color:var(--color-ink-soft)] leading-snug"
+    >
+      التحديث المستدام للمراكب الخشبية التقليدية (المحامل) في قطر
+    </p>
+
+    <p class="mt-10 max-w-2xl text-lg md:text-xl text-[color:var(--color-ink-soft)] leading-relaxed text-pretty">
+      A practical, safe, and certifiable framework for retrofitting traditional
+      Dhow vessels with electric propulsion — supporting Qatar&rsquo;s low-emission
+      maritime transition while preserving its cultural heritage.
+    </p>
+
+    <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8 max-w-4xl">
+      <Stat value="1:5" label="Modular prototype scale" />
+      <Stat value="22m" label="Reference vessel (Al Arour)" />
+      <Stat value="4" label="Project phases" footnote="2 complete · 2 ongoing" />
+      <Stat value="OMAE 2026" label="Peer-reviewed paper" footnote="Tokyo · Safety framework" />
+    </div>
+  </div>
+
+  <div class="rule mx-auto max-w-[var(--container-wide)]"></div>
+</section>

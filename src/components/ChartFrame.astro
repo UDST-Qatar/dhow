@@ -1,0 +1,22 @@
+---
+interface Props {
+  id: string;
+  title: string;
+  subtitle?: string;
+  height?: number;
+}
+const { id, title, subtitle, height = 240 } = Astro.props;
+---
+
+<figure
+  id={id}
+  class="rounded-lg border border-[color:var(--color-rule)] bg-white p-5 shadow-[0_1px_0_rgba(24,26,32,0.04)]"
+>
+  <figcaption class="mb-3">
+    <div class="font-serif text-base text-[color:var(--color-ink)]">{title}</div>
+    {subtitle && (
+      <div class="text-xs text-[color:var(--color-ink-muted)] mt-0.5">{subtitle}</div>
+    )}
+  </figcaption>
+  <div class="chart-host relative" style={`height:${height}px`}></div>
+</figure>

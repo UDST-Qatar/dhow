@@ -1,0 +1,363 @@
+---
+/**
+ * Live telemetry dashboard — fetches the published Google Sheet, caches it,
+ * and renders an editorial dashboard (cards + multi-range time series).
+ *
+ * Build time: fetches the sheet once, embeds a parsed snapshot for instant first paint.
+ * Runtime: revalidates from localStorage cache (5-min TTL) and refreshes every 5 min.
+ */
+import { parseCsv, rowsToSamples, type Sample } from '../lib/sheet';
+import ChartFrame from './ChartFrame.astro';
+
+const DEFAULT_SHEET_URL =
+  'https://docs.google.com/spreadsheets/d/1k4iWLhBqlMpo_RNDu7yGBHmwPwlI_iuQl2x3WNkN_Wk/export?format=csv';
+const SHEET_URL = import.meta.env.PUBLIC_SHEET_URL ?? DEFAULT_SHEET_URL;
+
+// Fetch + parse at build time. Failures are non-fatal — the runtime fetch still runs.
+let snapshot: Sample[] = [];
+let snapshotFetchedAt: number | null = null;
+try {
+  const res = await fetch(SHEET_URL, { signal: AbortSignal.timeout(10_000) });
+  if (res.ok) {
+    const text = await res.text();
+    snapshot = rowsToSamples(parseCsv(text));
+    snapshotFetchedAt = Date.now();
+  }
+} catch {
+  // build-time fetch failed (offline, rate-limited, etc.) — runtime will retry.
+}
+
+const initialPayload = JSON.stringify({
+  fetchedAt: snapshotFetchedAt,
+  data: snapshot,
+});
+---
+
+<div
+  id="live-dashboard"
+  class="not-prose"
+  data-sheet-url={SHEET_URL}
+>
+  <!-- Initial data baked in at build time -->
+  <script type="application/json" id="live-initial" set:html={initialPayload}></script>
+
+  <!-- Toolbar -->
+  <header class="flex flex-wrap items-center gap-4 mb-5">
+    <div class="flex items-center gap-2.5">
+      <span class="relative flex h-2 w-2" data-status-dot>
+        <span class="absolute inline-flex h-full w-full rounded-full bg-[color:var(--color-udst-blue)] opacity-50 animate-ping"></span>
+        <span class="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--color-udst-blue)]"></span>
+      </span>
+      <span class="text-sm font-medium text-[color:var(--color-ink)]">Onboard telemetry</span>
+      <span class="text-xs text-[color:var(--color-ink-muted)] tabular" data-status>—</span>
+    </div>
+
+    <div class="flex-1"></div>
+
+    <div role="tablist" aria-label="Time range" class="inline-flex rounded-md border border-[color:var(--color-rule)] bg-white overflow-hidden text-xs font-medium" data-range-tabs>
+      {(['24h', '7d', '30d', 'all'] as const).map((r) => (
+        <button
+          type="button"
+          role="tab"
+          data-range={r}
+          class="px-3 py-1.5 text-[color:var(--color-ink-soft)] data-[active=true]:bg-[color:var(--color-udst-blue)] data-[active=true]:text-white transition-colors"
+        >
+          {r === 'all' ? 'All' : r.toUpperCase()}
+        </button>
+      ))}
+    </div>
+
+    <div class="text-xs text-[color:var(--color-ink-muted)] tabular" data-last-updated>—</div>
+  </header>
+
+  <!-- Cards -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-px bg-[color:var(--color-rule)] rounded-lg overflow-hidden border border-[color:var(--color-rule)] mb-6" data-cards></div>
+
+  <!-- Primary chart: Battery -->
+  <div class="grid lg:grid-cols-[1.6fr_1fr] gap-6 mb-6">
+    <ChartFrame id="chart-battery" title="Battery state" subtitle="Charge percentage and pack voltage." />
+    <ChartFrame id="chart-pv" title="Solar generation" subtitle="PV1 power output." />
+  </div>
+
+  <!-- Secondary charts -->
+  <div class="grid lg:grid-cols-2 gap-6 mb-2">
+    <ChartFrame id="chart-temps" title="Heatsink temperatures" subtitle="Inverter, MPPT, and DC-DC heatsink (°C)." />
+    <ChartFrame id="chart-load" title="Load power" subtitle="Onboard load draw (W)." />
+  </div>
+
+  <p class="mt-5 text-xs text-[color:var(--color-ink-muted)] flex flex-wrap items-center gap-x-3 gap-y-1">
+    <span>Source: published Google Sheet</span>
+    <span>·</span>
+    <span>Cache TTL 5 min · cache-first SWR</span>
+    <span>·</span>
+    <a href={SHEET_URL} target="_blank" rel="noopener" class="underline decoration-dotted hover:text-[color:var(--color-udst-blue)]">View raw CSV →</a>
+  </p>
+</div>
+
+<script>
+  import { Chart, type Series } from '../lib/chart';
+  import { loadSheet, filterRange, downsample, deriveStats, type Sample, type Range } from '../lib/sheet';
+
+  type Initial = { fetchedAt: number | null; data: Sample[] };
+
+  function readInitial(): Initial {
+    const el = document.getElementById('live-initial');
+    if (!el?.textContent) return { fetchedAt: null, data: [] };
+    try {
+      return JSON.parse(el.textContent) as Initial;
+    } catch {
+      return { fetchedAt: null, data: [] };
+    }
+  }
+
+  function fmtTimeAgo(ms: number): string {
+    const s = Math.round((Date.now() - ms) / 1000);
+    if (s < 60) return `${s}s ago`;
+    if (s < 3600) return `${Math.round(s / 60)}m ago`;
+    if (s < 86400) return `${Math.round(s / 3600)}h ago`;
+    return `${Math.round(s / 86400)}d ago`;
+  }
+
+  function fmtNum(n: number, digits = 1): string {
+    if (!Number.isFinite(n)) return '—';
+    if (Math.abs(n) >= 10000) return (n / 1000).toFixed(1) + 'k';
+    return n.toFixed(digits);
+  }
+
+  function fmtKwh(n: number): string {
+    if (n >= 1000) return (n / 1000).toFixed(1) + ' MWh';
+    return n.toFixed(1) + ' kWh';
+  }
+
+  function renderCards(latest: Sample, stats: ReturnType<typeof deriveStats>) {
+    const root = document.querySelector<HTMLElement>('[data-cards]');
+    if (!root) return;
+
+    const cards: { label: string; value: string; sub?: string }[] = [
+      {
+        label: 'Battery',
+        value: `${latest.batteryV.toFixed(2)} V`,
+        sub: `${latest.batteryPct.toFixed(0)}% state of charge`,
+      },
+      {
+        label: 'PV power',
+        value: `${fmtNum(latest.pv1W, 0)} W`,
+        sub: `peak in window: ${fmtNum(stats.peakPvW, 0)} W`,
+      },
+      {
+        label: 'Load draw',
+        value: `${fmtNum(latest.loadW, 0)} W`,
+        sub: `${latest.loadA.toFixed(2)} A`,
+      },
+      {
+        label: 'AC output',
+        value: `${latest.acOutV.toFixed(0)} V`,
+        sub: 'inverter output',
+      },
+      {
+        label: 'Inverter °C',
+        value: `${latest.invTemp.toFixed(1)}°`,
+        sub: `MPPT ${latest.mpptTemp.toFixed(1)}° · DC-DC ${latest.dcdcTemp.toFixed(1)}°`,
+      },
+      {
+        label: 'Energy harvested',
+        value: fmtKwh(stats.totalEnergyKwh),
+        sub: `over ${stats.daysCovered.toFixed(1)} days`,
+      },
+      {
+        label: 'Avg battery SOC',
+        value: `${stats.avgBattPct.toFixed(0)}%`,
+        sub: `peak discharge ${fmtNum(stats.peakBattW, 0)} W`,
+      },
+      {
+        label: 'Load energy',
+        value: fmtKwh(stats.loadEnergyKwh),
+        sub: 'integrated in window',
+      },
+    ];
+
+    root.innerHTML = cards.map(c => `
+      <div class="p-5 bg-white">
+        <div class="text-[11px] uppercase tracking-[0.1em] text-[color:var(--color-ink-muted)]">${c.label}</div>
+        <div class="mt-1 font-serif text-2xl text-[color:var(--color-ink)] tabular">${c.value}</div>
+        ${c.sub ? `<div class="mt-0.5 text-xs text-[color:var(--color-ink-muted)]">${c.sub}</div>` : ''}
+      </div>`).join('');
+  }
+
+  // ---- Chart instances + render funcs ----
+  const charts = {
+    battery: null as Chart | null,
+    pv: null as Chart | null,
+    temps: null as Chart | null,
+    load: null as Chart | null,
+  };
+
+  const COLOR = {
+    blue: '#0055B8',
+    blueDeep: '#003E87',
+    gold: '#d68922',
+    green: '#2d7d59',
+    red: '#b9461e',
+    inkSoft: '#4a4f5a',
+  };
+
+  const fmtPower = (v: number) => v >= 1000 ? (v / 1000).toFixed(1) + 'kW' : v.toFixed(0) + 'W';
+  const fmtPct   = (v: number) => `${v.toFixed(0)}%`;
+  const fmtTemp  = (v: number) => `${v.toFixed(0)}°`;
+
+  function ensureCharts() {
+    const host = (id: string) => document.querySelector<HTMLElement>(`#${id} .chart-host`);
+    const w = 640;
+    if (!charts.battery) {
+      const h = host('chart-battery');
+      if (h) charts.battery = new Chart(h, { width: w, height: 240, yMin: 0, yMax: 100, yFormat: fmtPct });
+    }
+    if (!charts.pv) {
+      const h = host('chart-pv');
+      if (h) charts.pv = new Chart(h, { width: w, height: 240, yMinForceZero: true, yFormat: fmtPower });
+    }
+    if (!charts.temps) {
+      const h = host('chart-temps');
+      if (h) charts.temps = new Chart(h, { width: w, height: 220, yFormat: fmtTemp });
+    }
+    if (!charts.load) {
+      const h = host('chart-load');
+      if (h) charts.load = new Chart(h, { width: w, height: 220, yMinForceZero: true, yFormat: fmtPower });
+    }
+  }
+
+  function renderCharts(samples: Sample[], range: Range) {
+    const filtered = filterRange(samples, range);
+    if (filtered.length < 2) return;
+    const ds = downsample(filtered, 240);
+
+    charts.battery?.setData([
+      { label: 'State of charge', color: COLOR.blue, fill: true,
+        data: ds.map(s => [s.ts, s.batteryPct] as [number, number]) },
+    ]);
+
+    charts.pv?.setData([
+      { label: 'PV1 power', color: COLOR.gold, fill: true,
+        data: ds.map(s => [s.ts, s.pv1W] as [number, number]) },
+    ]);
+
+    charts.temps?.setData([
+      { label: 'Inverter', color: COLOR.red,   data: ds.map(s => [s.ts, s.invTemp]  as [number, number]) },
+      { label: 'MPPT',     color: COLOR.gold,  data: ds.map(s => [s.ts, s.mpptTemp] as [number, number]) },
+      { label: 'DC-DC',    color: COLOR.green, data: ds.map(s => [s.ts, s.dcdcTemp] as [number, number]) },
+    ]);
+
+    charts.load?.setData([
+      { label: 'Load', color: COLOR.blueDeep, fill: true,
+        data: ds.map(s => [s.ts, s.loadW] as [number, number]) },
+    ]);
+  }
+
+  function renderAll(samples: Sample[], range: Range, fetchedAt: number) {
+    if (samples.length === 0) {
+      const cards = document.querySelector<HTMLElement>('[data-cards]');
+      if (cards) cards.innerHTML = `
+        <div class="col-span-full p-8 bg-white text-center text-sm text-[color:var(--color-ink-muted)]">
+          No data yet — once the sheet has rows this dashboard populates automatically.
+        </div>`;
+      return;
+    }
+    const filtered = filterRange(samples, range);
+    if (filtered.length < 2) return;
+    const latest = samples[samples.length - 1];
+    const stats = deriveStats(filtered);
+    renderCards(latest, stats);
+    ensureCharts();
+    renderCharts(samples, range);
+
+    const lu = document.querySelector<HTMLElement>('[data-last-updated]');
+    if (lu) {
+      const sampleDate = new Date(latest.ts * 1000).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      lu.textContent = `latest sample ${sampleDate} · synced ${fmtTimeAgo(fetchedAt)}`;
+    }
+  }
+
+  function setStatus(text: string, ok: boolean) {
+    const s = document.querySelector<HTMLElement>('[data-status]');
+    const dot = document.querySelector<HTMLElement>('[data-status-dot] span:last-child');
+    if (s) s.textContent = text;
+    if (dot) dot.style.background = ok ? 'var(--color-udst-blue)' : 'var(--color-warning)';
+  }
+
+  function setActiveTab(range: Range) {
+    document.querySelectorAll<HTMLElement>('[data-range-tabs] [data-range]').forEach(b => {
+      b.dataset.active = (b.dataset.range === range) ? 'true' : 'false';
+    });
+  }
+
+  // ---- bootstrap ----
+  function init() {
+    const root = document.getElementById('live-dashboard');
+    if (!root) return;
+    const url = root.dataset.sheetUrl ?? '';
+    let range: Range = '24h';
+    let samples: Sample[] = [];
+    let fetchedAt = Date.now();
+
+    const initial = readInitial();
+    if (initial.data.length > 0) {
+      samples = initial.data;
+      fetchedAt = initial.fetchedAt ?? Date.now();
+      setActiveTab(range);
+      renderAll(samples, range, fetchedAt);
+      setStatus(`baked-in snapshot (${samples.length.toLocaleString()} samples)`, true);
+    } else {
+      setStatus('connecting…', true);
+    }
+
+    // Range tabs
+    document.querySelectorAll<HTMLElement>('[data-range-tabs] [data-range]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        range = btn.dataset.range as Range;
+        setActiveTab(range);
+        if (samples.length) renderAll(samples, range, fetchedAt);
+      });
+    });
+
+    // SWR fetch
+    let revalidating = false;
+    const revalidate = async () => {
+      if (revalidating || !url) return;
+      revalidating = true;
+      try {
+        await loadSheet(url, (data, info) => {
+          samples = data;
+          fetchedAt = info.fetchedAt;
+          renderAll(samples, range, fetchedAt);
+          setStatus(info.fromCache ? 'cached · revalidating' : `live (${samples.length.toLocaleString()} samples)`, true);
+        });
+        setStatus(`live (${samples.length.toLocaleString()} samples)`, true);
+      } catch (err) {
+        setStatus(`fetch failed: ${(err as Error).message}`, false);
+      } finally {
+        revalidating = false;
+      }
+    };
+
+    revalidate();
+    setInterval(revalidate, 5 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') revalidate();
+    });
+
+    // Re-render charts on resize (debounced) so SVG viewBox tracks layout
+    let resizeT: number | undefined;
+    window.addEventListener('resize', () => {
+      window.clearTimeout(resizeT);
+      resizeT = window.setTimeout(() => {
+        if (samples.length) renderCharts(samples, range);
+      }, 150);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+</script>

@@ -1,0 +1,33 @@
+---
+interface Row {
+  k: string;
+  v: string;
+  note?: string;
+}
+interface Props {
+  rows: Row[];
+  caption?: string;
+}
+const { rows, caption } = Astro.props;
+---
+
+<div class="rounded-lg border border-[color:var(--color-rule)] bg-white overflow-hidden">
+  <table class="w-full text-sm">
+    <tbody>
+      {rows.map((r, i) => (
+        <tr class={i !== rows.length - 1 ? 'border-b border-[color:var(--color-rule)]' : ''}>
+          <td class="px-5 py-3 align-top text-[color:var(--color-ink-soft)] w-1/3">{r.k}</td>
+          <td class="px-5 py-3 align-top font-medium text-[color:var(--color-ink)] tabular-nums">{r.v}</td>
+          <td class="px-5 py-3 align-top text-xs text-[color:var(--color-ink-muted)]">
+            {r.note}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  {caption && (
+    <div class="px-5 py-2 border-t border-[color:var(--color-rule)] text-xs text-[color:var(--color-ink-muted)] bg-[color:var(--color-paper-soft)]">
+      {caption}
+    </div>
+  )}
+</div>

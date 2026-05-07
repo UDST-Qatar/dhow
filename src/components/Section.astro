@@ -1,0 +1,43 @@
+---
+interface Props {
+  id?: string;
+  eyebrow?: string;
+  title: string;
+  lede?: string;
+  width?: 'narrow' | 'default' | 'wide';
+  divider?: boolean;
+}
+
+const {
+  id,
+  eyebrow,
+  title,
+  lede,
+  width = 'default',
+  divider = true,
+} = Astro.props;
+
+const widthClass = {
+  narrow: 'max-w-[var(--container-narrow)]',
+  default: 'max-w-[var(--container-default)]',
+  wide: 'max-w-[var(--container-wide)]',
+}[width];
+---
+
+<section id={id} class="scroll-mt-20 py-20 md:py-28">
+  <div class={`mx-auto px-6 lg:px-10 ${widthClass}`}>
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h2 class="mt-3 font-serif text-3xl md:text-5xl tracking-tight text-[color:var(--color-ink)] text-balance">
+      {title}
+    </h2>
+    {lede && (
+      <p class="mt-6 text-lg md:text-xl text-[color:var(--color-ink-soft)] leading-relaxed text-pretty max-w-3xl">
+        {lede}
+      </p>
+    )}
+    <div class="mt-12">
+      <slot />
+    </div>
+  </div>
+  {divider && <div class="rule mx-auto max-w-[var(--container-wide)]"></div>}
+</section>

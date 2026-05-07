@@ -1,0 +1,43 @@
+---
+const today = new Date();
+---
+
+<footer class="bg-[color:var(--color-ink)] text-[color:var(--color-paper)]">
+  <div class="mx-auto max-w-[var(--container-wide)] px-6 lg:px-10 py-16">
+    <div class="grid lg:grid-cols-[1.4fr_1fr_1fr] gap-12">
+      <div>
+        <img src="/brand/udst-full.svg" alt="University of Doha for Science and Technology" width="196" height="97" class="h-14 w-auto brightness-0 invert" />
+        <p class="mt-6 font-serif text-2xl leading-snug max-w-md">
+          Sustainable Dhows Retrofitting in Qatar
+        </p>
+        <p class="mt-3 text-sm text-white/60 max-w-md leading-relaxed">
+          A research and prototyping initiative led by the University of Doha for Science and Technology
+          and funded by the Ministry of Environment and Climate Change.
+        </p>
+      </div>
+
+      <div>
+        <p class="eyebrow text-[color:var(--color-accent-soft)]">Project investigators</p>
+        <ul class="mt-3 space-y-1.5 text-sm text-white/85">
+          <li>Dr. Hassan Mahasneh — LPI, Telecomm. Eng.</li>
+          <li>Dr. Wesam Rohouma — PI, Electrical Eng.</li>
+          <li>Dr. Nagi Abdussamie — PI, Marine Eng.</li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="eyebrow text-[color:var(--color-accent-soft)]">Recipient</p>
+        <ul class="mt-3 space-y-1.5 text-sm text-white/85">
+          <li>Ministry of Environment and Climate Change</li>
+          <li>Dr. Adeeb Ali</li>
+          <li class="font-mono text-xs text-white/60">aakutty@mecc.gov.qa</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-14 pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between gap-3 text-xs text-white/50">
+      <span>Report MOECC-UDST-5 &middot; Version A — Progress &middot; 26 Jan 2026</span>
+      <span>&copy; {today.getFullYear()} UDST Research</span>
+    </div>
+  </div>
+</footer>
