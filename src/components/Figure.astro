@@ -1,5 +1,5 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 
 type Aspect = 'auto' | 'video' | 'square' | '4/3' | '3/2' | '5/4';
@@ -9,13 +9,15 @@ interface Props {
   alt: string;
   caption?: string;
   number?: string;
-  /** When set, the image sits in a fixed-aspect frame and is contained — used to keep figure cards uniform across mixed source aspect ratios. */
+  /** Fixed-aspect frame so figure cards stay uniform across mixed source ratios. */
   aspect?: Aspect;
-  /** Plain frame (no padding around image). Set false for product/CAD shots that need breathing room. */
+  /** Plain frame (no padding around image). */
   flush?: boolean;
+  /** Disable click-to-zoom. Default: true (enabled). */
+  zoomable?: boolean;
 }
 
-const { src, alt, caption, number, aspect = 'auto', flush = false } = Astro.props;
+const { src, alt, caption, number, aspect = 'auto', flush = false, zoomable = true } = Astro.props;
 
 const aspectClass: Record<Aspect, string> = {
   auto: '',
@@ -31,21 +33,52 @@ const frameClass = [
   'overflow-hidden rounded-md border border-[color:var(--color-rule)] bg-white',
   fixed ? `${aspectClass[aspect]} flex items-center justify-center` : '',
   fixed && !flush ? 'p-5' : '',
+  zoomable ? 'cursor-zoom-in transition-transform hover:scale-[1.005]' : '',
 ].filter(Boolean).join(' ');
+
+const lbCaption = [number, caption].filter(Boolean).join(' — ');
+
+// Pre-generate a large WebP for the lightbox (one variant; lightboxes don't need srcset).
+const large = zoomable
+  ? await getImage({ src, width: Math.min(src.width, 1800), format: 'webp', quality: 88 })
+  : null;
 ---
 
 <figure class="my-2">
-  <div class={frameClass}>
-    <Image
-      src={src}
-      alt={alt}
-      widths={[480, 768, 1200, 1600]}
-      sizes="(min-width: 1024px) 720px, (min-width: 640px) 88vw, 92vw"
-      class={fixed ? 'max-h-full max-w-full w-auto h-auto object-contain' : 'w-full h-auto'}
-      loading="lazy"
-      decoding="async"
-    />
-  </div>
+  {zoomable ? (
+    <button
+      type="button"
+      class={`block w-full text-left ${frameClass}`}
+      data-lb
+      data-lb-src={large?.src}
+      data-lb-alt={alt}
+      data-lb-caption={lbCaption}
+      aria-label={`View ${alt} larger`}
+    >
+      <Image
+        src={src}
+        alt={alt}
+        widths={[480, 768, 1200, 1600]}
+        sizes="(min-width: 1024px) 720px, (min-width: 640px) 88vw, 92vw"
+        class={fixed ? 'max-h-full max-w-full w-auto h-auto object-contain' : 'w-full h-auto'}
+        loading="lazy"
+        decoding="async"
+      />
+    </button>
+  ) : (
+    <div class={frameClass}>
+      <Image
+        src={src}
+        alt={alt}
+        widths={[480, 768, 1200, 1600]}
+        sizes="(min-width: 1024px) 720px, (min-width: 640px) 88vw, 92vw"
+        class={fixed ? 'max-h-full max-w-full w-auto h-auto object-contain' : 'w-full h-auto'}
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+  )}
+
   {(caption || number) && (
     <figcaption class="mt-3 text-xs text-[color:var(--color-ink-muted)] flex gap-2 leading-relaxed">
       {number && <span class="font-medium text-[color:var(--color-ink-soft)] shrink-0">{number}</span>}
