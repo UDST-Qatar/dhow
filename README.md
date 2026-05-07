@@ -62,38 +62,6 @@ https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv&sheet=ac_u
 
 The sheet must be published (File → Share → "Anyone with the link"). Tab names must match `inverter1` / `ac_unit1` — or rename in `src/components/LiveData.astro`.
 
-## Project structure
-
-```
-src/
-├── assets/
-│   ├── brand/           # UDST logos (full + monogram)
-│   └── report/          # 28 figures from the docx, renamed
-├── components/
-│   ├── BaseLayout       # html shell, fonts, lightbox mount
-│   ├── Header           # scroll-aware sticky topbar
-│   ├── Hero             # bilingual masthead + prototype cutout
-│   ├── Section          # standard section wrapper (eyebrow / title / lede / slot)
-│   ├── SectionDivider   # symmetric rule between sections
-│   ├── Figure           # image + caption, opens in lightbox on click
-│   ├── Lightbox         # fullscreen gallery (←/→/Esc/swipe)
-│   ├── ChartFrame       # titled card hosting one chart instance
-│   ├── LiveData         # tabbed dashboard (Inverter / AC unit)
-│   ├── CodeSnippet      # editorial code block (used for JSON protocol)
-│   ├── PhaseTimeline    # 4-phase status row
-│   ├── Stat             # number + label
-│   └── Footer           # UDST-blue masthead, leadership, metadata
-├── lib/
-│   ├── sheet.ts         # CSV parse, fetch + SWR cache, downsample, derived stats
-│   └── chart.ts         # SVG line-chart class with crosshair + tooltip
-├── layouts/
-│   └── BaseLayout.astro
-├── pages/
-│   └── index.astro
-└── styles/
-    └── global.css       # tailwind v4 + UDST design tokens
-```
-
 ## Lightbox / image gallery
 
 Every `<Figure>` on the page is a lightbox trigger. The `Lightbox` component (mounted once in `BaseLayout`) collects all `[data-lb]` elements at click time, treats them as one ordered gallery, and supports:
