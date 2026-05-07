@@ -95,6 +95,9 @@ const team = {
     { name: 'Dr. Nagi Abdussamie', role: 'PI · Marine Engineering' },
     { name: 'Dr. Athira Mohan', role: 'Postdoc · Electrical Engineering' },
   ],
+  consultants: [
+    { name: 'Marwan Mobark', role: 'Consultant · Mechatronics Engineering' },
+  ],
   students: [
     { name: 'Mohamed Abderrahim Zagrar', dept: 'Marine Eng.' },
     { name: 'Iyed Khedhiri', dept: 'Marine Eng.' },
@@ -544,6 +547,18 @@ const team = {
       <p class="eyebrow mb-4">Investigators</p>
       <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-px bg-[color:var(--color-rule)] rounded-lg overflow-hidden border border-[color:var(--color-rule)]">
         {team.leads.map(p => (
+          <div class="bg-white p-6">
+            <p class="font-serif text-lg text-[color:var(--color-ink)] leading-tight text-balance">{p.name}</p>
+            <p class="mt-2 text-xs text-[color:var(--color-ink-soft)] leading-relaxed text-pretty">{p.role}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="mt-12">
+      <p class="eyebrow mb-4">Consultants</p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[color:var(--color-rule)] rounded-lg overflow-hidden border border-[color:var(--color-rule)] max-w-md">
+        {team.consultants.map(p => (
           <div class="bg-white p-6">
             <p class="font-serif text-lg text-[color:var(--color-ink)] leading-tight text-balance">{p.name}</p>
             <p class="mt-2 text-xs text-[color:var(--color-ink-soft)] leading-relaxed text-pretty">{p.role}</p>
