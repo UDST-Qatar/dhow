@@ -24,9 +24,17 @@ export interface Sample {
   loadW: number;
   loadA: number;
   acOutV: number;
+  acInV: number;       // shore-power AC input voltage (low/0 when disconnected)
   invTemp: number;
   mpptTemp: number;
   dcdcTemp: number;
+}
+
+/** AC unit (cabin) sample. Pulled from the second sheet tab. */
+export interface AcSample {
+  ts: number;
+  cabinTemp: number;   // °C
+  setPoint: number;    // °C cooling target
 }
 
 export type Range = '24h' | '7d' | '30d' | 'all';
@@ -38,13 +46,14 @@ const RANGE_SECONDS: Record<Range, number> = {
   'all': Infinity,
 };
 
-const CACHE_KEY = 'udst-sheet-v1';
+const CACHE_KEY_INVERTER = 'udst-sheet-inv-v2';
+const CACHE_KEY_AC = 'udst-sheet-ac-v2';
 const CACHE_TTL_MS = 5 * 60 * 1000;
 
-interface CacheEntry {
+interface CacheEntry<T> {
   fetchedAt: number;
   url: string;
-  data: Sample[];
+  data: T[];
 }
 
 // Same robust parser used in the earlier draft — handles quoted fields w/ commas + escaped quotes.
@@ -100,7 +109,8 @@ export function rowsToSamples(grid: string[][]): Sample[] {
     pv2W: idx('PV2_Power'),
     lw: idx('Load_Power'),
     la: idx('Load_Current'),
-    ac: idx('Output_AC_Voltage'),
+    acO: idx('Output_AC_Voltage'),
+    acI: idx('AC_Input_Voltage'),
     iT: idx('Inverter_Heatsink_temp'),
     mT: idx('MPPT_Heatsink_temp'),
     dT: idx('Inverter_internal_DC_to_DC_Heatsink_temp'),
@@ -121,7 +131,8 @@ export function rowsToSamples(grid: string[][]): Sample[] {
       pv2W: num(r[I.pv2W]),
       loadW: num(r[I.lw]),
       loadA: num(r[I.la]),
-      acOutV: num(r[I.ac]),
+      acOutV: num(r[I.acO]),
+      acInV: num(r[I.acI]),
       invTemp: num(r[I.iT]),
       mpptTemp: num(r[I.mT]),
       dcdcTemp: num(r[I.dT]),
@@ -131,7 +142,7 @@ export function rowsToSamples(grid: string[][]): Sample[] {
   return out;
 }
 
-export function filterRange(samples: Sample[], range: Range): Sample[] {
+export function filterRange<T extends { ts: number }>(samples: T[], range: Range): T[] {
   if (samples.length === 0) return samples;
   if (range === 'all') return samples;
   const last = samples[samples.length - 1].ts;
@@ -143,6 +154,87 @@ export function filterRange(samples: Sample[], range: Range): Sample[] {
     if (samples[mid].ts < cutoff) lo = mid + 1; else hi = mid;
   }
   return samples.slice(lo);
+}
+
+export function rowsToAcSamples(grid: string[][]): AcSample[] {
+  if (grid.length < 2) return [];
+  const head = grid[0].map(s => s.trim());
+  const idx = (name: string) => head.indexOf(name);
+  const I = {
+    ts: idx('timestamp'),
+    cabin: idx('Internal_Cabin_Temp'),
+    set: idx('Cool_Set_Point'),
+  };
+  const out: AcSample[] = [];
+  for (let i = 1; i < grid.length; i++) {
+    const r = grid[i];
+    out.push({
+      ts: num(r[I.ts]),
+      cabinTemp: num(r[I.cabin]),
+      setPoint: num(r[I.set]),
+    });
+  }
+  out.sort((a, b) => a.ts - b.ts);
+  return out;
+}
+
+export function downsampleAc(samples: AcSample[], target: number): AcSample[] {
+  if (samples.length <= target) return samples;
+  const bucket = samples.length / target;
+  const out: AcSample[] = [];
+  for (let i = 0; i < target; i++) {
+    const start = Math.floor(i * bucket);
+    const end = Math.floor((i + 1) * bucket);
+    const slice = samples.slice(start, end);
+    if (!slice.length) continue;
+    const mid = slice[Math.floor(slice.length / 2)];
+    let cT = 0, sT = 0;
+    for (const s of slice) { cT += s.cabinTemp; sT += s.setPoint; }
+    out.push({ ts: mid.ts, cabinTemp: cT / slice.length, setPoint: sT / slice.length });
+  }
+  return out;
+}
+
+export interface AcStats {
+  current: number;
+  setPoint: number;
+  avg: number;
+  min: number;
+  max: number;
+  comfortPct: number;          // % of samples within ±1°C of setpoint
+  degreeHoursAbove: number;    // ∫ max(0, cabinTemp - setPoint) dt  → °C·hours
+  setPointChanges: number;
+}
+
+export function deriveAcStats(samples: AcSample[]): AcStats {
+  if (samples.length === 0) {
+    return { current: 0, setPoint: 0, avg: 0, min: 0, max: 0, comfortPct: 0, degreeHoursAbove: 0, setPointChanges: 0 };
+  }
+  let sum = 0, mn = Infinity, mx = -Infinity, comfort = 0, dhAbove = 0, changes = 0;
+  let prevSet = samples[0].setPoint;
+  for (let i = 0; i < samples.length; i++) {
+    const s = samples[i];
+    sum += s.cabinTemp;
+    if (s.cabinTemp < mn) mn = s.cabinTemp;
+    if (s.cabinTemp > mx) mx = s.cabinTemp;
+    if (Math.abs(s.cabinTemp - s.setPoint) <= 1) comfort++;
+    if (s.setPoint !== prevSet) { changes++; prevSet = s.setPoint; }
+    if (i > 0) {
+      const dtHours = (s.ts - samples[i - 1].ts) / 3600;
+      dhAbove += Math.max(0, s.cabinTemp - s.setPoint) * dtHours;
+    }
+  }
+  const last = samples[samples.length - 1];
+  return {
+    current: last.cabinTemp,
+    setPoint: last.setPoint,
+    avg: sum / samples.length,
+    min: mn,
+    max: mx,
+    comfortPct: (comfort / samples.length) * 100,
+    degreeHoursAbove: dhAbove,
+    setPointChanges: changes,
+  };
 }
 
 /** Bucket-average downsampling — keeps min/max + avg per bucket so spikes survive. */
@@ -162,12 +254,12 @@ export function downsample(samples: Sample[], target: number): Sample[] {
       a.pv1W += s.pv1W; a.pv1V += s.pv1V; a.pv2W += s.pv2W;
       a.loadW += s.loadW; a.loadA += s.loadA;
       a.invTemp += s.invTemp; a.mpptTemp += s.mpptTemp; a.dcdcTemp += s.dcdcTemp;
-      a.acOutV += s.acOutV;
+      a.acOutV += s.acOutV; a.acInV += s.acInV;
       return a;
     }, {
       batteryV: 0, batteryPct: 0, batteryDischargeW: 0, batteryChargeW: 0,
       pv1W: 0, pv1V: 0, pv2W: 0, loadW: 0, loadA: 0,
-      invTemp: 0, mpptTemp: 0, dcdcTemp: 0, acOutV: 0,
+      invTemp: 0, mpptTemp: 0, dcdcTemp: 0, acOutV: 0, acInV: 0,
     });
     const n = slice.length;
     out.push({
@@ -183,6 +275,7 @@ export function downsample(samples: Sample[], target: number): Sample[] {
       loadW: acc.loadW / n,
       loadA: acc.loadA / n,
       acOutV: acc.acOutV / n,
+      acInV: acc.acInV / n,
       invTemp: acc.invTemp / n,
       mpptTemp: acc.mpptTemp / n,
       dcdcTemp: acc.dcdcTemp / n,
@@ -227,17 +320,18 @@ export function deriveStats(samples: Sample[]): DerivedStats {
   };
 }
 
-/** SWR-style cached load. Returns cached data immediately (sync via callback) and revalidates in background. */
-export async function loadSheet(
+/** SWR-style cached load — generic over the sample type. */
+async function loadSource<T extends { ts: number }>(
   url: string,
-  onUpdate: (samples: Sample[], info: { fromCache: boolean; fetchedAt: number }) => void,
+  cacheKey: string,
+  parse: (grid: string[][]) => T[],
+  onUpdate: (data: T[], info: { fromCache: boolean; fetchedAt: number }) => void,
 ): Promise<void> {
-  // 1. Try cache
-  let cached: CacheEntry | null = null;
+  let cached: CacheEntry<T> | null = null;
   try {
-    const raw = localStorage.getItem(CACHE_KEY);
+    const raw = localStorage.getItem(cacheKey);
     if (raw) {
-      const c = JSON.parse(raw) as CacheEntry;
+      const c = JSON.parse(raw) as CacheEntry<T>;
       if (c.url === url && Array.isArray(c.data)) cached = c;
     }
   } catch { /* ignore */ }
@@ -247,20 +341,28 @@ export async function loadSheet(
   const isFresh = cached && (Date.now() - cached.fetchedAt) < CACHE_TTL_MS;
   if (isFresh) return;
 
-  // 2. Fetch fresh
   try {
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
-    const samples = rowsToSamples(parseCsv(text));
-    if (samples.length === 0) throw new Error('Empty sheet');
+    const data = parse(parseCsv(text));
+    if (data.length === 0) throw new Error('Empty sheet');
     const fetchedAt = Date.now();
-    onUpdate(samples, { fromCache: false, fetchedAt });
+    onUpdate(data, { fromCache: false, fetchedAt });
     try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({ url, fetchedAt, data: samples } satisfies CacheEntry));
+      localStorage.setItem(cacheKey, JSON.stringify({ url, fetchedAt, data } satisfies CacheEntry<T>));
     } catch { /* localStorage full or disabled */ }
   } catch (err) {
     if (!cached) throw err;
-    // else: silently keep cached data on failure
   }
 }
+
+export const loadInverterSheet = (
+  url: string,
+  cb: (data: Sample[], info: { fromCache: boolean; fetchedAt: number }) => void,
+) => loadSource(url, CACHE_KEY_INVERTER, rowsToSamples, cb);
+
+export const loadAcSheet = (
+  url: string,
+  cb: (data: AcSample[], info: { fromCache: boolean; fetchedAt: number }) => void,
+) => loadSource(url, CACHE_KEY_AC, rowsToAcSamples, cb);

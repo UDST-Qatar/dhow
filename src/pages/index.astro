@@ -5,9 +5,9 @@ import Header from '../components/Header.astro';
 import Hero from '../components/Hero.astro';
 import Section from '../components/Section.astro';
 import Figure from '../components/Figure.astro';
-import SpecTable from '../components/SpecTable.astro';
 import PhaseTimeline from '../components/PhaseTimeline.astro';
 import LiveData from '../components/LiveData.astro';
+import CodeSnippet from '../components/CodeSnippet.astro';
 import Footer from '../components/Footer.astro';
 
 import figStability from '../assets/report/fig01-stability-cg.png';
@@ -40,29 +40,25 @@ import edhowSolar from '../assets/report/edhow-solar.png';
 import edhowTp5100 from '../assets/report/edhow-tp5100.png';
 import edhowSg90 from '../assets/report/edhow-sg90.png';
 
-const vesselSpecs = [
-  { k: 'Ship name', v: 'Al Arour', note: 'Reg. 313' },
-  { k: 'Ship type', v: 'Tourism craft' },
-  { k: 'Home port', v: 'Doha' },
-  { k: 'Length, overall', v: '22 m' },
-  { k: 'Length, waterline', v: '19.8 m', note: 'estimated (0.9 × LOA)' },
-  { k: 'Breadth (moulded)', v: '6.2 m' },
-  { k: 'Depth', v: '2.4 m', note: 'estimated' },
-  { k: 'Designed draft', v: '1.5 – 1.8 m', note: 'estimated' },
-  { k: 'Displacement', v: '113 t', note: 'estimated, Cb = 0.6' },
-  { k: 'Deadweight', v: '85 t', note: '~75% of displacement' },
-  { k: 'Main engine', v: '200 kW @ 2000 RPM', note: 'diesel · 1× engine' },
-  { k: 'Propulsion', v: '1× propeller, 0.95 m, 4-blade screw' },
-  { k: 'Operational speed', v: '5 knots', note: '~9.3 km/h' },
-  { k: 'Round trips / day', v: '5 trips × 10 km', note: '100 service days/year' },
+const vesselFacts = [
+  { k: 'Ship name', v: 'Al Arour', sub: 'Reg. 313' },
+  { k: 'Type · Port', v: 'Tourism craft', sub: 'Doha' },
+  { k: 'Length overall', v: '22 m', sub: 'LWL 19.8 m' },
+  { k: 'Breadth · Depth', v: '6.2 × 2.4 m', sub: 'moulded' },
+  { k: 'Designed draft', v: '1.5 – 1.8 m', sub: 'estimated' },
+  { k: 'Displacement', v: '113 t', sub: 'Cb 0.6 · DWT 85 t' },
+  { k: 'Main engine', v: '200 kW @ 2000 rpm', sub: 'diesel · gearbox 1:2.57' },
+  { k: 'Propulsion', v: 'Ø 0.95 m, 4-blade', sub: 'screw type' },
+  { k: 'Operating speed', v: '5 kn', sub: '~9.3 km/h' },
+  { k: 'Round trips', v: '5 × 10 km / day', sub: '100 service days/yr' },
 ];
 
 const edhowComponents = [
-  { name: 'RC Boat 380 Motor + shaft + propeller', img: null },
+  { name: 'RC Boat 380 motor + shaft + propeller', img: null },
   { name: '2S 3000 mAh 25C LiPo battery', img: edhowLipo },
   { name: 'MJX HyperGo 2S 7.4V Li-Po charger', img: edhowCharger },
   { name: 'RC ESC — 20A brushed motor speed controller', img: edhowEsc },
-  { name: '5V 600 mA solar panel (130×150 mm)', img: edhowSolar },
+  { name: '5V 600 mA solar panel (130 × 150 mm)', img: edhowSolar },
   { name: 'TP5100 charging-interface chip', img: edhowTp5100 },
   { name: 'SG90 servo — positional rotation', img: edhowSg90 },
   { name: 'FlySky FS-GT2 (or similar 2.4 GHz FHSS)', img: edhowFlysky },
@@ -129,30 +125,40 @@ const team = {
     lede="Traditional Dhows have anchored Qatar's maritime identity for generations — first as fishing and pearling vessels, now repurposed for tourism. Their predictable routes and short voyage ranges make them an ideal entry point for electrification, while preserving the craft itself."
     width="default"
   >
-    <div class="grid lg:grid-cols-[1.1fr_1fr] gap-12 items-start">
-      <div class="prose-body">
-        <p>
-          The project develops a structured electric-propulsion retrofit framework for Qatari Dhows, with
-          <strong>safety, certification readiness, and operational reliability</strong> treated as primary design
-          drivers — not afterthoughts. Retrofitting legacy wooden hulls introduces unique challenges around
-          structural integrity, weight distribution, electrical integration, and fire safety.
-        </p>
-        <p>
-          Since the previous reporting period the project moved from conceptual feasibility to
-          prototype-validated implementation. A modular three-segment 1:5 hull is in fabrication, and an in-house
-          onshore renewable-energy charging station is now operational. A peer-reviewed safety paper is under
-          publication at <strong>OMAE 2026</strong> in Tokyo, formalizing the framework that underpins the
-          recommendations summarized here.
-        </p>
-        <p class="callout">
-          The work is aligned with <strong>Qatar National Vision 2030</strong> and supports the country&rsquo;s
-          transition toward low-emission maritime operations across small craft.
-        </p>
-      </div>
+    <div class="prose-body max-w-3xl">
+      <p>
+        The project develops a structured electric-propulsion retrofit framework for Qatari Dhows, with
+        <strong>safety, certification readiness, and operational reliability</strong> treated as primary design
+        drivers — not afterthoughts. Retrofitting legacy wooden hulls introduces unique challenges around
+        structural integrity, weight distribution, electrical integration, and fire safety.
+      </p>
+      <p>
+        Since the previous reporting period the project moved from conceptual feasibility to
+        prototype-validated implementation. A modular three-segment 1:5 hull is in fabrication, and an in-house
+        onshore renewable-energy charging station is now operational. A peer-reviewed safety paper is under
+        publication at <strong>OMAE 2026</strong> in Tokyo, formalizing the framework that underpins the
+        recommendations summarized here.
+      </p>
+      <p class="callout">
+        The work is aligned with <strong>Qatar National Vision 2030</strong> and supports the country&rsquo;s
+        transition toward low-emission maritime operations across small craft.
+      </p>
+    </div>
 
-      <div class="grid gap-3">
+    <!-- Reference vessel — compact horizontal fact grid (replaces tall spec table) -->
+    <div class="mt-14">
+      <div class="flex items-baseline justify-between mb-4 flex-wrap gap-x-4">
         <p class="eyebrow">Reference vessel</p>
-        <SpecTable rows={vesselSpecs} caption="Table 1. Reference Dhow vessel data — used to derive scaling rules and energy budgets." />
+        <p class="text-xs text-[color:var(--color-ink-muted)]">Table 1 · derives scaling rules and energy budgets</p>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-[color:var(--color-rule)] rounded-lg overflow-hidden border border-[color:var(--color-rule)]">
+        {vesselFacts.map((f) => (
+          <div class="bg-white p-4">
+            <p class="text-[10px] uppercase tracking-[0.12em] text-[color:var(--color-ink-muted)] font-medium">{f.k}</p>
+            <p class="mt-1 font-serif text-base text-[color:var(--color-ink)] tabular leading-tight">{f.v}</p>
+            <p class="mt-0.5 text-xs text-[color:var(--color-ink-muted)]">{f.sub}</p>
+          </div>
+        ))}
       </div>
     </div>
 
@@ -169,51 +175,63 @@ const team = {
     title="From CAD to a seaworthy modular hull."
     lede="A three-segment 1:5 prototype is in fabrication, additively manufactured for precise mass distribution and battery compartmentalization. Stability, steering, and structural frames are commissioned ahead of sea trials."
   >
-    <div class="grid md:grid-cols-2 gap-10">
-      <div class="space-y-3">
-        <h3 class="font-serif text-xl text-[color:var(--color-ink)]">Stability simulations</h3>
-        <p class="prose-body">
-          Real measurements of the existing 1:5 hull (mass, draft) fed an Ansys hydrostatic model, yielding a
-          metacentric height of <strong>GM = 0.23 m</strong> at scale (≈1 m at full scale) — typical good
-          stability for small craft. Different loading and component layouts could be verified before water tests.
-        </p>
-        <Figure src={figStability} alt="Sideways view of the 1:5 prototype showing centre of gravity and inertia" number="Fig. 1" caption="Sideways view visualizing the CG and inertia." />
-        <Figure src={figAnsys} alt="Snapshot of the Ansys hydrostatic stability results" number="Fig. 2" caption="Ansys hydrostatic stability snapshot." />
-      </div>
-
-      <div class="space-y-3">
-        <h3 class="font-serif text-xl text-[color:var(--color-ink)]">Rudder &amp; servo control</h3>
-        <p class="prose-body">
-          The rudder was 3D-printed in ABS, surface-finished and reinforced with UV-resistant epoxy. A
-          <strong>200 kg servo</strong> drives it from a custom PETG enclosure (under 1.2 kg) sized for water
-          splash protection. Fabrication uses a newly-acquired 80 × 80 × 100 cm Elegoo 3D printer.
-        </p>
-        <Figure src={figRudderCad} alt="Design illustrations of the inhouse rudder and servo mounting system" number="Fig. 3" caption="Inhouse rudder + servo mounting system (CAD)." />
-        <Figure src={figRudderBuilt} alt="Fully integrated rudder and servo unit" number="Fig. 4" caption="Fully integrated rudder + servo unit." />
+    <!-- Stability simulations -->
+    <div>
+      <h3 class="font-serif text-2xl text-[color:var(--color-ink)]">Stability simulations</h3>
+      <p class="mt-3 prose-body">
+        Real measurements of the existing 1:5 hull (mass, draft) fed an Ansys hydrostatic model, yielding a
+        metacentric height of <strong>GM = 0.23 m</strong> at scale (≈1 m at full scale) — typical good
+        stability for small craft. Different loading and component layouts could be verified before water tests.
+      </p>
+      <div class="mt-7 grid md:grid-cols-2 gap-6">
+        <Figure src={figStability} alt="Sideways view of the 1:5 prototype showing centre of gravity and inertia"
+          number="Fig. 1" caption="Sideways view visualizing the CG and inertia." aspect="video" />
+        <Figure src={figAnsys} alt="Snapshot of the Ansys hydrostatic stability results"
+          number="Fig. 2" caption="Ansys hydrostatic stability snapshot." aspect="video" />
       </div>
     </div>
 
-    <div class="mt-16 grid md:grid-cols-3 gap-8 items-start">
-      <div class="md:col-span-2 space-y-3">
-        <h3 class="font-serif text-xl text-[color:var(--color-ink)]">Main structural frames</h3>
-        <p class="prose-body">
-          Two frame systems carry the loads: a <strong>perimeter frame</strong> bonded along the hull edges to add
-          mounting surface and local stiffness, and an <strong>elevated solar frame</strong>
-          (1665 × 2640 mm) holding the PV array overhead with weight-relief cut-outs. All frame parts were
-          CNC water-jet cut from 18 mm wood and bonded on-site at UDST.
-        </p>
-        <Figure src={figCutout} alt="Close view of the longitudinal cutout of the 1:5 large prototype" number="Fig. 5" caption="Longitudinal cutout of the large prototype." />
-      </div>
-
-      <div class="space-y-6">
-        <Figure src={figPerimeter} alt="Segmented front perimeter frame design with interlocking joints" number="Fig. 6" caption="Perimeter frame — interlocking joints for sheet-size manufacturability." contain />
-        <Figure src={figPerimeterAssembled} alt="Front perimeter frame assembled" number="Fig. 7" caption="Perimeter frame assembly." contain />
+    <!-- Rudder & servo -->
+    <div class="mt-20">
+      <h3 class="font-serif text-2xl text-[color:var(--color-ink)]">Rudder &amp; servo control</h3>
+      <p class="mt-3 prose-body">
+        The rudder was 3D-printed in ABS, surface-finished and reinforced with UV-resistant epoxy. A
+        <strong>200 kg servo</strong> drives it from a custom PETG enclosure (under 1.2 kg) sized for water
+        splash protection. Fabrication uses a newly-acquired 80 × 80 × 100 cm Elegoo 3D printer that lifts
+        the long-standing build-volume constraint on continuous-piece prints.
+      </p>
+      <div class="mt-7 grid md:grid-cols-2 gap-6">
+        <Figure src={figRudderCad} alt="Design illustrations of the inhouse rudder and servo mounting system"
+          number="Fig. 3" caption="Inhouse rudder + servo mounting system (CAD)." aspect="video" />
+        <Figure src={figRudderBuilt} alt="Fully integrated rudder and servo unit"
+          number="Fig. 4" caption="Fully integrated rudder + servo unit." aspect="video" />
       </div>
     </div>
 
-    <div class="mt-12 grid md:grid-cols-2 gap-8">
-      <Figure src={figSolarFrame} alt="Elevated solar panel supporting frame with weight-reduction cut-outs" number="Fig. 8" caption="Elevated PV frame with weight-reduction cut-outs." />
-      <Figure src={figPvDim} alt="PV frame overall dimensions" number="Fig. 9" caption="Overall dimensions of the PV frame." contain />
+    <!-- Structural frames -->
+    <div class="mt-20">
+      <h3 class="font-serif text-2xl text-[color:var(--color-ink)]">Main structural frames</h3>
+      <p class="mt-3 prose-body">
+        Two frame systems carry the loads: a <strong>perimeter frame</strong> bonded along the hull edges to add
+        mounting surface and local stiffness, and an <strong>elevated solar frame</strong> (1665 × 2640 mm)
+        holding the PV array overhead with weight-relief cut-outs. All frame parts were CNC water-jet cut from
+        18 mm wood and bonded on-site at UDST. The perimeter frame was segmented to fit available sheet sizes
+        and uses interlocking puzzle-type joints for accurate alignment.
+      </p>
+      <div class="mt-7">
+        <Figure src={figCutout} alt="Close view of the longitudinal cutout of the 1:5 large prototype"
+          number="Fig. 5" caption="Longitudinal cutout of the large prototype." aspect="video" />
+      </div>
+      <div class="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-6">
+        <Figure src={figPerimeter} alt="Segmented front perimeter frame design with interlocking joints"
+          number="Fig. 6" caption="Perimeter frame — segmented for manufacturability." aspect="4/3" />
+        <Figure src={figPerimeterAssembled} alt="Front perimeter frame assembled"
+          number="Fig. 7" caption="Perimeter frame — assembled." aspect="4/3" />
+        <Figure src={figSolarFrame} alt="Elevated solar panel supporting frame with weight-reduction cut-outs"
+          number="Fig. 8" caption="Elevated PV frame with weight-reduction cut-outs." aspect="4/3" />
+        <Figure src={figPvDim} alt="PV frame overall dimensions"
+          number="Fig. 9" caption="Overall dimensions of the PV frame." aspect="4/3" />
+      </div>
     </div>
   </Section>
 
@@ -224,27 +242,41 @@ const team = {
     title="Battery, control, and telemetry — re-architected."
     lede="A protected electric-board enclosure houses the control and charging electronics. Two new data-logger PCBs were designed, fabricated, and bench-tested — Version 2 collapses the dual-MCU stack onto a single, more capable controller for a smaller footprint."
   >
-    <div class="grid md:grid-cols-2 gap-8 items-start">
-      <Figure src={figElectricBox} alt="Electric box board assembly" number="Fig. 10" caption="Electric-box assembly — base + cover (SolidWorks)." contain />
-      <Figure src={figBms} alt="Battery management system layout for the 1:5 prototype" number="Fig. 12" caption="BMS layout, 1:5 prototype." contain />
+    <div class="prose-body max-w-3xl">
+      <p>
+        The enclosure splits into a <strong>base</strong> with integrated mounting bosses and through-holes
+        (≈ 145.92 × 101.00 mm) that secures the control board, charging modules, and terminal connections,
+        and a <strong>cover</strong> (≈ 115.93 × 101.00 mm, R18 mm radii) that fully encloses the assembly
+        while allowing cable routing and connector access. External tabs anchor the enclosure to the
+        charging station&rsquo;s structural frame.
+      </p>
     </div>
 
-    <div class="mt-14 grid md:grid-cols-[1fr_1.2fr] gap-10 items-start">
-      <div class="prose-body">
-        <p>
-          <strong>Version 1</strong> used a dual-MCU architecture (Arduino Mega + ESP32) over UART — clear
-          task separation, but a larger PCB and more wiring.
-        </p>
-        <p>
-          <strong>Version 2</strong> consolidates voltage/current sensors, GPS, telemetry, and SD card on a
-          single more-capable controller. Compact, more reliable, and friendlier to install in a marine
-          environment.
-        </p>
-      </div>
-      <div class="space-y-6">
-        <Figure src={figDlBlock} alt="Block diagram of the inhouse data logger" number="Fig. 13" caption="Block diagram — data acquisition." />
-        <Figure src={figV2Pcb} alt="Version 2 data logger and telemetry PCB layout and assembled board" number="Fig. 18" caption="Version 2 PCB — layout + assembled board." />
-      </div>
+    <div class="mt-8 grid md:grid-cols-2 gap-6">
+      <Figure src={figElectricBox} alt="Electric box board assembly"
+        number="Fig. 10" caption="Electric-box assembly — base + cover (SolidWorks)." aspect="4/3" />
+      <Figure src={figBms} alt="Battery management system layout for the 1:5 prototype"
+        number="Fig. 12" caption="BMS layout, 1:5 prototype." aspect="4/3" />
+    </div>
+
+    <div class="mt-16 prose-body max-w-3xl">
+      <p>
+        <strong>Version 1</strong> used a dual-MCU architecture (Arduino Mega 2560 + ESP32) over UART —
+        clear task separation, but a larger PCB and more wiring complexity. Voltage / current sensors, GPS
+        and environmental sensors fed one MCU; the second managed processing, telemetry and external comms.
+      </p>
+      <p>
+        <strong>Version 2</strong> consolidates voltage / current sensors, GPS module, wireless telemetry
+        and the SD card on a single more-capable controller. The redesign reduces wiring complexity, is more
+        reliable, and is easier to install in a marine environment.
+      </p>
+    </div>
+
+    <div class="mt-8 grid md:grid-cols-2 gap-6">
+      <Figure src={figDlBlock} alt="Block diagram of the inhouse data logger"
+        number="Fig. 13" caption="Block diagram — data acquisition." aspect="video" />
+      <Figure src={figV2Pcb} alt="Version 2 data logger and telemetry PCB layout and assembled board"
+        number="Fig. 18" caption="Version 2 PCB — layout + assembled board." aspect="video" />
     </div>
   </Section>
 
@@ -255,14 +287,15 @@ const team = {
     title="A renewable-energy charging station, built in-house."
     lede="A monitoring system collects real-time energy and environmental data from a solar inverter and AC unit over RS485 Modbus, then ships it to a Raspberry Pi dashboard. Data is stored locally (SQLite) and streamed to an online database for long-term retention."
   >
-    <div class="grid lg:grid-cols-[1.2fr_1fr] gap-10 items-start">
-      <Figure src={figSysArch} alt="System architecture overview" number="Fig. 19" caption="System architecture overview." />
+    <div class="grid lg:grid-cols-[1.3fr_1fr] gap-8 items-stretch">
+      <Figure src={figSysArch} alt="System architecture overview"
+        number="Fig. 19" caption="System architecture overview." aspect="video" />
 
-      <div class="rounded-lg border border-[color:var(--color-rule)] bg-white overflow-hidden">
-        <div class="px-5 py-3 border-b border-[color:var(--color-rule)] bg-[color:var(--color-paper-soft)] text-xs uppercase tracking-[0.12em] text-[color:var(--color-ink-soft)]">
+      <div class="rounded-md border border-[color:var(--color-rule)] bg-white overflow-hidden flex flex-col">
+        <div class="px-5 py-3 border-b border-[color:var(--color-rule)] bg-[color:var(--color-udst-blue-tint)] text-[11px] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-udst-blue)]">
           System layers
         </div>
-        <table class="w-full text-sm">
+        <table class="w-full text-sm flex-1">
           <tbody>
             {[
               ['Acquisition', 'RS485 Modbus', 'Reads inverter + AC unit registers'],
@@ -271,9 +304,9 @@ const team = {
               ['Visualization', 'CustomTkinter GUI', 'Real-time cards + history graphs'],
             ].map(([a, b, c], i, arr) => (
               <tr class={i !== arr.length - 1 ? 'border-b border-[color:var(--color-rule)]' : ''}>
-                <td class="px-4 py-2.5 text-[color:var(--color-ink-soft)] w-1/4">{a}</td>
-                <td class="px-4 py-2.5 font-medium text-[color:var(--color-ink)]">{b}</td>
-                <td class="px-4 py-2.5 text-[color:var(--color-ink-muted)] text-xs">{c}</td>
+                <td class="px-4 py-3 align-top text-[color:var(--color-ink-muted)] w-[28%]">{a}</td>
+                <td class="px-4 py-3 align-top font-medium text-[color:var(--color-ink)]">{b}</td>
+                <td class="px-4 py-3 align-top text-[color:var(--color-ink-soft)] text-xs">{c}</td>
               </tr>
             ))}
           </tbody>
@@ -281,29 +314,76 @@ const team = {
       </div>
     </div>
 
+    <!-- Hardware photos: portrait + landscape mixed, normalized via aspect="4/3" -->
     <div class="mt-12 grid md:grid-cols-3 gap-6">
-      <Figure src={figDlRpi} alt="Data logger and Raspberry Pi connection" number="Fig. 22" caption="Logger ↔ Raspberry Pi." />
-      <Figure src={figMonitoringApp} alt="Monitoring app architecture" number="Fig. 23" caption="Monitoring-app architecture." />
-      <Figure src={figDashboard} alt="Main features of the dashboard" number="Fig. 24" caption="Dashboard — cards + history." />
+      <Figure src={figDlRpi} alt="Data logger and Raspberry Pi connection"
+        number="Fig. 22" caption="Logger ↔ Raspberry Pi." aspect="4/3" />
+      <Figure src={figMonitoringApp} alt="Monitoring app architecture"
+        number="Fig. 23" caption="Monitoring-app architecture." aspect="4/3" />
+      <Figure src={figDashboard} alt="Main features of the dashboard"
+        number="Fig. 24" caption="Dashboard — cards + history." aspect="4/3" />
     </div>
 
-    <div class="mt-14 rounded-lg border border-[color:var(--color-rule)] bg-[color:var(--color-paper-soft)] p-6 lg:p-8">
-      <p class="eyebrow">Communication protocol</p>
-      <p class="prose-body mt-3">
-        Each packet is wrapped between <code class="font-mono text-[color:var(--color-ink)]">&lt;JSONSTART&gt;</code>
-        and <code class="font-mono text-[color:var(--color-ink)]">&lt;JSONEND&gt;</code> markers. The dashboard
-        replies with <code class="font-mono">Packet:N</code> as an ACK; the ESP32 retries on timeout (100 ms).
+    <!-- Communication protocol — packets rendered as code snippets, side by side -->
+    <div class="mt-16">
+      <div class="flex items-baseline justify-between gap-4 mb-5 flex-wrap">
+        <div>
+          <p class="eyebrow">Communication protocol</p>
+          <h3 class="mt-2 font-serif text-2xl text-[color:var(--color-ink)]">JSON over USB-serial, with ACK.</h3>
+        </div>
+        <p class="text-xs text-[color:var(--color-ink-muted)] max-w-md text-right">
+          Each packet is wrapped between <code class="font-mono">&lt;JSONSTART&gt;</code> /
+          <code class="font-mono">&lt;JSONEND&gt;</code> markers. The Raspberry Pi replies
+          <code class="font-mono">Packet:N</code>; the ESP32 retries on 100 ms timeout.
+        </p>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6">
+        <CodeSnippet
+          title="inverter packet"
+          subtitle="Modbus slave 1 · 19 registers"
+          marker={{ open: '<JSONSTART>', close: '<JSONEND>' }}
+        >
+<span class="code-punc">&#123;</span>
+  <span class="code-key">"packet"</span><span class="code-punc">:</span> <span class="code-num">11</span><span class="code-punc">,</span>
+  <span class="code-key">"timestamp"</span><span class="code-punc">:</span> <span class="code-num">29689</span><span class="code-punc">,</span>
+  <span class="code-key">"device"</span><span class="code-punc">:</span> <span class="code-str">"inverter"</span><span class="code-punc">,</span>
+  <span class="code-key">"data"</span><span class="code-punc">: &#123;</span>
+    <span class="code-key">"Battery Voltage"</span><span class="code-punc">:</span> <span class="code-num">52.4</span><span class="code-punc">,</span>
+    <span class="code-key">"Battery Percentage"</span><span class="code-punc">:</span> <span class="code-num">78</span><span class="code-punc">,</span>
+    <span class="code-key">"PV1 Power"</span><span class="code-punc">:</span> <span class="code-num">420</span><span class="code-punc">,</span>
+    <span class="code-key">"PV2 Power"</span><span class="code-punc">:</span> <span class="code-num">385</span><span class="code-punc">,</span>
+    <span class="code-key">"Load Power"</span><span class="code-punc">:</span> <span class="code-num">310</span><span class="code-punc">,</span>
+    <span class="code-key">"Inverter Heatsink temp"</span><span class="code-punc">:</span> <span class="code-num">38</span>
+  <span class="code-punc">&#125;</span>
+<span class="code-punc">&#125;</span>
+        </CodeSnippet>
+
+        <CodeSnippet
+          title="ac packet"
+          subtitle="Modbus slave 2 · 2 registers"
+          marker={{ open: '<JSONSTART>', close: '<JSONEND>' }}
+        >
+<span class="code-punc">&#123;</span>
+  <span class="code-key">"packet"</span><span class="code-punc">:</span> <span class="code-num">10</span><span class="code-punc">,</span>
+  <span class="code-key">"timestamp"</span><span class="code-punc">:</span> <span class="code-num">24786</span><span class="code-punc">,</span>
+  <span class="code-key">"device"</span><span class="code-punc">:</span> <span class="code-str">"ac_unit"</span><span class="code-punc">,</span>
+  <span class="code-key">"data"</span><span class="code-punc">: &#123;</span>
+    <span class="code-key">"Internal Cabin Temp"</span><span class="code-punc">:</span> <span class="code-num">24.8</span><span class="code-punc">,</span>
+    <span class="code-key">"Cool Set Point"</span><span class="code-punc">:</span> <span class="code-num">22</span>
+  <span class="code-punc">&#125;</span>
+<span class="code-punc">&#125;</span>
+        </CodeSnippet>
+      </div>
+      <p class="mt-4 text-xs text-[color:var(--color-ink-muted)]">
         Invalid Modbus reads (<code class="font-mono">0xFFFF</code>) are filtered before display.
+        Sensor scaling (e.g. voltages ÷ 10) is applied at the Pi.
       </p>
-      <pre class="mt-5 overflow-x-auto text-xs font-mono text-[color:var(--color-ink-soft)] bg-white border border-[color:var(--color-rule)] rounded p-4 leading-relaxed"><code>&lt;JSONSTART&gt;{`{"packet":11,"timestamp":29689,"device":"inverter","data":{`}
-  {`"Battery Voltage":52.4, "Battery Percentage":78,`}
-  {`"PV1 Power":420, "PV2 Power":385,`}
-  {`"Load Power":310, "Inverter Heatsink temp":38, ...`}
-{`}}`}&lt;JSONEND&gt;</code></pre>
     </div>
 
-    <div class="mt-14">
-      <Figure src={figChargingStation} alt="Fully-functional onshore renewable energy charging station" number="Fig. 25" caption="Fully-functional onshore renewable-energy charging station." />
+    <div class="mt-16">
+      <Figure src={figChargingStation} alt="Fully-functional onshore renewable energy charging station"
+        number="Fig. 25" caption="Fully-functional onshore renewable-energy charging station." aspect="video" />
     </div>
   </Section>
 
@@ -312,7 +392,7 @@ const team = {
     id="live"
     eyebrow="Real-time"
     title="Live telemetry from the charging station."
-    lede="The dashboard below pulls a published Google Sheet that mirrors the onboard data logger — the same fields shown on the cabin display. Update cadence is one second on-device; this view refreshes every 30 seconds."
+    lede="The dashboard below pulls a published Google Sheet that mirrors the onboard data logger — the same fields shown on the cabin display. Update cadence is one second on-device; this view caches client-side and revalidates every 5 minutes."
   >
     <LiveData />
   </Section>
@@ -324,12 +404,14 @@ const team = {
     title="A hands-on solar training simulation."
     lede="A two-level training simulation puts trainees in an outdoor environment to connect cables (Level 1) and optimize panel orientation (Level 2). The current reporting period focused on user testing and feedback-driven refinement."
   >
-    <div class="grid md:grid-cols-2 gap-8">
-      <Figure src={figVrIntro} alt="VR simulation — introduction screen" number="Fig. 26" caption="Simulation introduction." />
-      <Figure src={figVrGuidance} alt="VR simulation — spatial guidance system" number="Fig. 27" caption="Spatial guidance system (HUD + waypoints)." />
+    <div class="grid md:grid-cols-2 gap-6">
+      <Figure src={figVrIntro} alt="VR simulation — introduction screen"
+        number="Fig. 26" caption="Simulation introduction." aspect="video" />
+      <Figure src={figVrGuidance} alt="VR simulation — spatial guidance system"
+        number="Fig. 27" caption="Spatial guidance system (HUD + waypoints)." aspect="video" />
     </div>
 
-    <div class="mt-10 grid md:grid-cols-2 gap-x-12 gap-y-4 prose-body">
+    <div class="mt-12 grid md:grid-cols-2 gap-x-12 gap-y-4 prose-body">
       <div>
         <h4 class="font-serif text-lg text-[color:var(--color-ink)] mb-2">Improvements implemented</h4>
         <ul class="list-disc pl-5 space-y-1.5">
@@ -382,15 +464,16 @@ const team = {
     title="The Sustainable eDhow Competition."
     lede="A WorldSkills-aligned engineering challenge for students. Teams assemble identical pre-built hulls, then race for payload and maneuverability. Final at UDST Skills Day."
   >
-    <div class="grid lg:grid-cols-[1.2fr_1fr] gap-10 items-start">
-      <Figure src={figEdhowHull} alt="A small-scaled model of the dhow hull used for the eDhow competition" number="Fig. 28" caption="Small-scale Dhow hull for the eDhow competition." />
+    <div class="grid lg:grid-cols-[1.3fr_1fr] gap-8 items-stretch">
+      <Figure src={figEdhowHull} alt="A small-scaled model of the dhow hull used for the eDhow competition"
+        number="Fig. 28" caption="Small-scale Dhow hull for the eDhow competition." aspect="4/3" />
 
-      <div class="rounded-lg border border-[color:var(--color-rule)] bg-[color:var(--color-accent)] text-white p-7 lg:p-8 relative overflow-hidden">
-        <div class="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-white/10 blur-2xl"></div>
-        <p class="eyebrow text-white/80">Save the date</p>
+      <div class="rounded-md bg-[color:var(--color-udst-blue)] text-white p-7 lg:p-8 relative overflow-hidden flex flex-col justify-center">
+        <div class="absolute -right-16 -bottom-16 w-56 h-56 rounded-full bg-white/10 blur-3xl"></div>
+        <p class="text-[11px] uppercase tracking-[0.16em] text-white/70 font-medium">Save the date</p>
         <p class="mt-2 font-serif text-4xl tracking-tight leading-tight">UDST Skills Day</p>
-        <p class="mt-2 font-serif text-2xl text-white/85">1 April 2026</p>
-        <p class="mt-5 text-white/80 leading-relaxed text-sm">
+        <p class="mt-1 font-serif text-2xl text-white/85">1 April 2026</p>
+        <p class="mt-5 text-white/80 leading-relaxed text-sm max-w-md">
           Three timed phases — boat assembly, payload &amp; race, and control &amp; maneuverability — assess
           teamwork, technical precision, and understanding of marine + alternative-energy systems.
         </p>

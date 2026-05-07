@@ -1,0 +1,44 @@
+---
+interface Props {
+  title: string;
+  subtitle?: string;
+  language?: string;
+  marker?: { open: string; close: string };
+}
+const { title, subtitle, language = 'json', marker } = Astro.props;
+---
+
+<div class="rounded-md border border-[color:var(--color-rule)] bg-white overflow-hidden flex flex-col">
+  <div class="flex items-center justify-between gap-3 px-4 py-2.5 border-b border-[color:var(--color-rule)] bg-[color:var(--color-udst-blue-tint)]">
+    <div class="flex items-center gap-3">
+      <span class="font-mono text-[11px] font-semibold tracking-wider uppercase text-[color:var(--color-udst-blue)]">
+        {title}
+      </span>
+      {subtitle && (
+        <span class="text-[11px] text-[color:var(--color-ink-muted)]">
+          {subtitle}
+        </span>
+      )}
+    </div>
+    <span class="font-mono text-[10px] text-[color:var(--color-ink-muted)] uppercase tracking-wider">
+      {language}
+    </span>
+  </div>
+  <div class="px-4 py-4 overflow-x-auto text-[12.5px] font-mono leading-[1.65] text-[color:var(--color-ink-soft)] flex-1">
+    {marker && (
+      <div class="text-[color:var(--color-ink-muted)] mb-1 select-none">{marker.open}</div>
+    )}
+    <div class="whitespace-pre"><slot /></div>
+    {marker && (
+      <div class="text-[color:var(--color-ink-muted)] mt-1 select-none">{marker.close}</div>
+    )}
+  </div>
+</div>
+
+<style>
+  /* Light syntax tone — keys in UDST blue, strings slate */
+  :global(.code-key) { color: var(--color-udst-blue); }
+  :global(.code-num) { color: var(--color-ink); font-weight: 500; }
+  :global(.code-str) { color: #475569; }
+  :global(.code-punc) { color: var(--color-ink-muted); }
+</style>

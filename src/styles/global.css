@@ -6,30 +6,31 @@
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "IBM Plex Mono", Menlo, Monaco, monospace;
 
   /* UDST brand */
-  --color-udst-blue: #0055B8;        /* primary brand blue */
+  --color-udst-blue: #0055B8;        /* primary brand blue (used as background, not text accent) */
   --color-udst-blue-deep: #003E87;   /* darker variant for hover/emphasis */
-  --color-udst-blue-soft: #E8F0FA;   /* tint for surfaces */
+  --color-udst-blue-soft: #EAF1FA;   /* tint for surfaces */
+  --color-udst-blue-tint: #F5F8FC;   /* subtle wash */
   --color-udst-ink: #1D1E1C;          /* logo near-black */
 
-  /* Editorial neutrals */
+  /* Editorial neutrals — cooler, paper-white instead of cream */
   --color-ink: #1D1E1C;
-  --color-ink-soft: #4a4f5a;
+  --color-ink-soft: #424650;
   --color-ink-muted: #8a8f9a;
-  --color-paper: #faf8f3;
-  --color-paper-soft: #f3efe6;
-  --color-rule: #e3ddcd;
+  --color-paper: #fbfaf7;
+  --color-paper-soft: #f1f1ed;
+  --color-rule: #e1e0da;
 
   /* Accents */
   --color-accent: #0055B8;
   --color-accent-soft: #4d8bd1;
-  --color-warning: #b9651e;
-  --color-success: #2d7d59;
+  --color-warning: #7a3a1d;
+  --color-success: #1f6f4a;
 
-  /* Chart series — distinguishable, on-brand */
-  --chart-1: #0055B8;
-  --chart-2: #d68922;
-  --chart-3: #2d7d59;
-  --chart-4: #b9461e;
+  /* Chart series — cool, distinguishable, on-brand */
+  --chart-1: #0055B8;   /* UDST blue */
+  --chart-2: #1f6f4a;   /* forest */
+  --chart-3: #475569;   /* slate */
+  --chart-4: #5b3b8c;   /* deep violet */
 
   --container-narrow: 48rem;
   --container-default: 64rem;
